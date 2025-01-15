@@ -1,14 +1,19 @@
 import streamlit as st
 import whisper
 from pydub import AudioSegment
+from pydub.utils import which
 
-def convert_audio_to_text(audio_file, format):
+# Ensure ffmpeg is configured for pydub
+AudioSegment.converter = which("ffmpeg")
+
+def convert_audio_to_text(audio_file, format, language="ms"):
     """
     Convert audio file to text using Whisper.
     
     Args:
         audio_file: Uploaded audio file.
         format: The format of the audio file (e.g., 'mp3', 'm4a').
+        language: Language for transcription (default: 'ms' for Bahasa Melayu).
         
     Returns:
         Transcribed text.
@@ -21,13 +26,13 @@ def convert_audio_to_text(audio_file, format):
     wav_file = "temp_audio.wav"
     audio.export(wav_file, format="wav")
     
-    # Transcribe audio
-    result = model.transcribe(wav_file)
+    # Transcribe audio with specific language
+    result = model.transcribe(wav_file, language=language)
     return result['text']
 
 # Streamlit UI
 st.title("Audio to Text Converter")
-st.subheader("Upload an MP3 or M4A file to convert it to text")
+st.subheader("Upload an MP3 or M4A file to convert it to text in Bahasa Melayu")
 
 uploaded_file = st.file_uploader("Upload an audio file", type=["mp3", "m4a"])
 
@@ -38,7 +43,7 @@ if uploaded_file is not None:
     
     with st.spinner("Converting... Please wait!"):
         try:
-            transcription = convert_audio_to_text(uploaded_file, file_format)
+            transcription = convert_audio_to_text(uploaded_file, file_format, language="ms")
             st.success("Conversion complete!")
             st.text_area("Transcribed Text", transcription, height=300)
         except Exception as e:
